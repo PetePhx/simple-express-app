@@ -19,23 +19,17 @@ app.get('/api/courses', (req, res) => {
 });
 
 app.get('/api/courses/:id', (req, res) => {
-	let course = courses.find(c => c.id === parseInt(req.params.id));
+	const course = courses.find(c => c.id === parseInt(req.params.id));
 	if (!course) res.status(404)
 									.send('The course with the given id was not found.');
 	res.send(course);
 });
 
 app.post('/api/courses', (req, res) => {
-	const schema = {
-		name: Joi.string().min(3).required()
-	};
-
-	const result = Joi.validate(req.body, schema);
-	
-	if (result.error) {
-		// 400 bad request
+	const { error } = validateCourse(req.body);
+	if (error) {
 		res.status(400)
-			 .send(result.error.details[0].message);
+			 .send(error.details[0].message);
 		return;
 	}
 	
@@ -48,5 +42,35 @@ app.post('/api/courses', (req, res) => {
 	res.send(course);
 });
 
+app.put('/api/courses/:id', (req, res) => {
+	// Look up the course, if non existant, return 404 not found
+	const course = courses.find(c => c.id === parseInt(req.params.id));
+	if (!course) {
+		res.status(404)
+			 .send('The course with the given id was not found.');
+		return;
+	}
+									
+	// Validate the updates, if invalid, return 400 bad request
+	const { error } = validateCourse(req.body);
+	if (error) {
+		res.status(400)
+			 .send(error.details[0].message);
+		return;
+	}
+
+	// Update and return the updated course
+	course.name = req.body.name;
+	res.send(course);
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on Port ${port} ...`));
+
+function validateCourse(course) {
+	const schema = {
+		name: Joi.string().min(3).required()
+	};
+
+	return Joi.validate(course, schema);
+}
