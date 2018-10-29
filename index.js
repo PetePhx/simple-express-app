@@ -1,3 +1,4 @@
+const debug = require('debug')('app:startup');
 const config = require('config');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -20,7 +21,7 @@ console.log('Mail Server Password: ' + config.get('mail.password'));
 
 if (app.get('env') === 'development') {
 	app.use(morgan('tiny'));
-	console.log('Using morgan for logging...');	
+	debug('Using morgan for logging...');	
 }
 
 app.use(logger);
